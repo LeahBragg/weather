@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+    </head>
+    <body>
+        <script>
+            getWeather();
+            function getWeather(){
+                fetch('http://api.weatherapi.com/v1/current.json?key=1343c8b4c1624ba2b0f180705250302?q=NewYork')
+                    .then(response => {
+                        if(response.ok){
+                            return response.json(); //get response in json
+                        } else {
+                            throw new Error ("API request failed");
+                        }
+                    })
+                    .then(data => {
+                        //process data
+                        //Ex. print to console
+                        console.log(data)
+                    })
+                    .catch(error => {
+                        //handle errors
+                        console.error(error);
+                    })
+            }
+        </script>
+    </body>
+</html>

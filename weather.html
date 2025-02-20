@@ -1,29 +1,324 @@
 <!DOCTYPE html>
 <html>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <head>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <style>
+            body {
+                margin: 0;
+
+                color: #FFF;
+                font-family: sans-serif;
+                font-style: normal;
+                font-weight: 400;
+                line-height: normal;
+                
+                font-size: 30px;
+                text-align: center;
+            }
+            body.day{
+                background-color: #6889DB;
+            }
+            body.night{
+                background-color: #082772;
+            }
+
+            #header {
+                overflow: hidden;          
+            }
+            #header.day{
+                background-color: #4c6ab0;   
+            }
+            #header.night{
+                background-color: #000b24;
+            }
+            .contentWrapper {
+                margin: auto;
+                width: 600px;
+                display: flex;  
+                flex-wrap: nowrap;
+            }
+            #header .topContent {
+                float: left;
+                padding: 14px 16px;
+                font-size: 17px;
+            }
+            #location {
+                border: none;
+                width: 500px;
+            }
+            #location:focus{
+                border: none;
+                background-color: white;
+            }
+            #btn {
+                border: none;
+                background-color: #f0df29;
+                transition-duration: 0.1s;
+                color: black;
+                width: 100px;
+            }
+            #btn:hover {
+                background-color: #63c1ff;
+            }
+            #btn:active {
+                transform: scale(85%);
+            }
+
+            #main{
+                width: 500px;
+                height: 650px;
+                margin: auto;
+                
+                border-radius: 30px;
+                text-align: center;
+                flex-direction: column;
+                align-items: center;
+            }
+            #main.day{
+                background-color: #4c6ab0;
+            }
+            #main.night {
+                background-color: #000b24;
+            }
+            #main p{
+                margin-top: 10px;
+                margin-bottom: 10px;
+            }
+            #info {
+                margin-top: 10px;
+            }
+            #info p {
+                margin-top: 10px;
+                margin-bottom: 10px;
+            }
+            #icon {
+                width: 100%;
+            }
+            
+            svg{
+                width: 75%;
+                height: 60%;
+                margin: auto;
+            }
+        </style>
 
     </head>
-    <body>
+    <body class = "day">
+        <div id = "header" class = "day">
+            <div class = "contentWrapper">
+                <button onclick = "getWeather()" id = "btn" class = "topContent"><i class = "fa fa-map-marker"></i></button>
+                <input type ="" id = "location" name = "location" class = "topContent">
+            </div>
+        </div>
+        <div id = "info">
+            <p id = "place"></p>
+            <p id = "country"></p>
+            <p id = "localtime"></p>
+        </div>
+        <div id = "main" class = "day" style="display: none;">
+            <p id = "condition"></p>
+            <p id = "moonPhase"></p>
+            <svg><image id = "icon" href="" /></svg>
+            <p id = "temp"></p>
+            <p id = "feelslike"></p>
+
+        </div>
         <script>
-            getWeather();
+            var input = document.getElementById("location")
+            input.addEventListener("keypress", function(event){
+                if(event.key == "Enter"){
+                    event.preventDefault();
+                    document.getElementById("btn").click()
+                }
+            })
             function getWeather(){
-                fetch('http://api.weatherapi.com/v1/current.json?key=1343c8b4c1624ba2b0f180705250302?q=NewYork')
+                
+                fetch('http://api.weatherapi.com/v1/forecast.json?key=1343c8b4c1624ba2b0f180705250302&q=' + document.getElementById("location").value)
                     .then(response => {
                         if(response.ok){
+                            
                             return response.json(); //get response in json
                         } else {
                             throw new Error ("API request failed");
                         }
                     })
                     .then(data => {
+                        document.getElementById("main").setAttribute("style", "display: flex")
                         //process data
-                        //Ex. print to console
+                        document.getElementById("place").innerHTML = data.location.name + ", " + data.location.region;
+                        document.getElementById("country").innerHTML = data.location.country;
+                        var year = data.location.localtime.substring(0, 4)
+                        var month = data.location.localtime.substring(5, 7)
+                        var day = data.location.localtime.substring(8, 10)
+
+                        var hour = parseInt(data.location.localtime.substring(11, 13))
+                        var minute = data.location.localtime.substring(14, 16)
+                        var time
+                        if(hour > 12){
+                            time = (hour-12) + ":" + minute + " PM"
+                        } else if (hour == 0){
+                            time = "12:" + minute + " AM"
+                        } else {
+                            time = hour + ":" + minute + " AM"
+                        }
+
+                        var condition = data.current.condition.code
+                        var isDay = data.current.is_day   
+                        var moon = data.forecast.forecastday[0].astro.moon_phase
+
+                        document.getElementById("localtime").innerHTML = getMonth(month) + " " + day + ", " + year + " " + time
+
+                        var d = String.fromCharCode(176)
+                        document.getElementById("condition").innerHTML = data.current.condition.text;
+                        
+                        document.getElementById("temp").innerHTML = data.current.temp_f + d + "F | " + data.current.temp_c + d + "C"; 
+                        document.getElementById("feelslike").innerHTML = "Feels like " + data.current.feelslike_f + d + "F | " + data.current.feelslike_c + d + "C"; 
+
+                        if(!isDay){
+                            document.getElementById("moonPhase").innerHTML = moon;
+                            var elems = document.getElementsByClassName("day")
+                            console.log(elems)
+                            while(elems.length > 0){
+                                elems[0].setAttribute("class", "night")
+                            }
+                        } else {
+                            document.getElementById("moonPhase").innerHTML = "";
+                            var elems = document.getElementsByClassName("night")
+                            console.log(elems)
+                            while(elems.length > 0){
+                                elems[0].setAttribute("class", "day")
+                            }
+                        }
                         console.log(data)
-                    })
-                    .catch(error => {
-                        //handle errors
-                        console.error(error);
-                    })
+
+                        
+                            
+                    //clear
+                    if (condition == 1000){
+                        if(isDay){
+                            document.getElementById("icon").setAttribute("href", "sun.svg")
+                        } else {
+                            if(moon == "New Moon"){
+                                document.getElementById("icon").setAttribute("href", "clear_night.svg")
+                            } else if (moon == "Waxing Crescent"){
+                                document.getElementById("icon").setAttribute("href", "waxing_crescent_moon.svg")
+                            } else if (moon == "First Quarter"){
+                                document.getElementById("icon").setAttribute("href", "first_quarter_moon.svg")
+                            } else if (moon == "Waxing Gibbous"){
+                                document.getElementById("icon").setAttribute("href", "waxing_gibbous_moon.svg")
+                            } else if (moon == "Full Moon"){
+                                document.getElementById("icon").setAttribute("href", "full_moon.svg")
+                            } else if (moon == "Waning Gibbous"){
+                                document.getElementById("icon").setAttribute("href", "waning_gibbous_moon.svg")
+                            } else if (moon == "Last Quarter"){
+                                document.getElementById("icon").setAttribute("href", "third_quarter_moon.svg")
+                            } else if (moon == "Waning Crescent"){
+                                document.getElementById("icon").setAttribute("href", "waning_crescent_moon.svg")
+                            }
+                        }
+                    //Partly Cloudy
+                    } else if (condition == 1003){
+                        if(isDay){
+                            document.getElementById("icon").setAttribute("href", "partly_cloudy_day.svg")
+                        } else {
+                            if(moon == "New Moon"){
+                                document.getElementById("icon").setAttribute("href", "partly_cloudy_clear_night.svg")
+                            } else if (moon == "Waxing Crescent"){
+                                document.getElementById("icon").setAttribute("href", "partly_cloudy_waxing_crescent_moon.svg")
+                            } else if (moon == "First Quarter"){
+                                document.getElementById("icon").setAttribute("href", "partly_cloudy_first_quarter_moon.svg")
+                            } else if (moon == "Waxing Gibbous"){
+                                document.getElementById("icon").setAttribute("href", "partly_cloudy_waxing_gibbous_moon.svg")
+                            } else if (moon == "Full Moon"){
+                                document.getElementById("icon").setAttribute("href", "partly_cloudy_full_moon.svg")
+                            } else if (moon == "Waning Gibbous"){
+                                document.getElementById("icon").setAttribute("href", "partly_cloudy_waning_gibbous_moon.svg")
+                            } else if (moon == "Last Quarter"){
+                                document.getElementById("icon").setAttribute("href", "partly_cloudy_third_quarter_moon.svg")
+                            } else if (moon == "Waning Crescent"){
+                                document.getElementById("icon").setAttribute("href", "partly_cloudy_waning_crescent_moon.svg")
+                            }
+                        }
+                    //Cloudy
+                    } else if (condition == 1006 || condition == 1009){
+                        if(isDay){   
+                            document.getElementById("icon").setAttribute("href", "cloud_day.svg")
+                        } else {
+                            document.getElementById("icon").setAttribute("href", "cloud_night.svg")
+                        }
+                    //Mist/Fog
+                    } else if (condition == 1030 || condition == 1135){
+                        document.getElementById("icon").setAttribute("href", "mist.svg")
+    
+                    //Light/Patchy Rain
+                    } else if (condition == 1063 || condition == 1150 || condition == 1180 || 
+                        condition == 1183 || condition == 1240 || condition == 1273){
+                        document.getElementById("icon").setAttribute("href", "light_rain.svg")
+                    //Moderate to Light/Patchy Snow
+                    } else if (condition == 1066 || condition == 1210 || condition == 1213 ||
+                            condition == 1216 || condition == 1255 || condition == 1279 ||
+                            condition == 1216 || condition == 1219 || condition == 1258){
+                        document.getElementById("icon").setAttribute("href", "snow.svg")
+                    //Sleet/Freezing Rain/Mix
+                    } else if (condition == 1069 || condition == 1072 || condition == 1168 || 
+                        condition == 1171 || condition == 1198 || condition == 1201 ||
+                        condition == 1204 || condition == 1207 || condition == 1249 ||
+                        condition == 1252){
+                        document.getElementById("icon").setAttribute("href", "freezing_rain.svg")
+                    //Thunderstorm
+                    } else if (condition == 1087){
+                        document.getElementById("icon").setAttribute("href", "lightning.svg")
+                    //Blowing Snow
+                    } else if (condition == 1114){
+                        document.getElementById("icon").setAttribute("href", "blowing_snow.svg")
+                    //Heavy Snow/Blizzard/Ice Pellets
+                    } else if (condition == 1117 || condition == 1222 || condition == 1225 ||
+                        condition == 1237 || condition == 1261 || condition == 1264 ||
+                        condition == 1282){
+                        document.getElementById("icon").setAttribute("href", "heavy_snow.svg")
+                    //Freezing Fog
+                    } else if (condition == 1147){
+                        document.getElementById("icon").setAttribute("href", "freezing_fog.svg")
+                    //Moderate/Heavy Rain
+                    } else if (condition == 1186 || condition == 1189 || condition == 1192 || 
+                        condition == 1195 || condition == 1243 || condition == 1246 ||
+                        condition == 1276){
+                        document.getElementById("icon").setAttribute("href", "rain.svg")
+                    }
+                })
+                .catch(error => {
+                    //handle errors
+                    console.error(error);
+                })
+            }
+
+            function getMonth(code){
+                if(code == '01'){
+                    return "January"
+                } else if (code == '02'){
+                    return "February"
+                } else if (code == '03'){
+                    return "March"
+                } else if (code == '04'){
+                    return "April"
+                } else if (code == '05'){
+                    return "May"
+                } else if (code == '06'){
+                    return "June"
+                } else if (code == '07'){
+                    return "July"
+                } else if (code == '08'){
+                    return "August"
+                } else if (code == '09'){
+                    return "September"
+                } else if (code == '10'){
+                    return "October"
+                } else if (code == '11'){
+                    return "November"
+                } else if (code == '12'){
+                    return "December"
+                }
             }
         </script>
     </body>

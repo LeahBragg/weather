@@ -134,7 +134,7 @@
             })
             function getWeather(){
                 
-                fetch('http://api.weatherapi.com/v1/forecast.json?key=1343c8b4c1624ba2b0f180705250302&q=' + document.getElementById("location").value)
+                fetch('https://api.weatherapi.com/v1/forecast.json?key=1343c8b4c1624ba2b0f180705250302&q=' + document.getElementById("location").value)
                     .then(response => {
                         if(response.ok){
                             
